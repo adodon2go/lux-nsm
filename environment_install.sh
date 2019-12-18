@@ -29,17 +29,26 @@ else
     echo "Virtualization support is enabled"
 fi
 
+# Check if curl is installed
+curl --version > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "curl is installed"
+else
+    echo "curl is not installed"
+    sudo apt install curl
+fi
+
 # Check if kubectl is installed
-if [ -z "$(kubectl)" ]; then
+kubectl > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "kubectl is installed"
+else
     echo "kubectl is not installed"
     curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
-    kubectl version
     # Add below line in ~/.bashrc for persistence
-    source <(kubectl completion bash)
-else
-    echo "kubectl is installed"
+    # source <(kubectl completion bash)
 fi
 
 #Installing Virtual Box
@@ -69,11 +78,13 @@ else
     curl -Lo minikube https://storage.googleapis.com/minikube/releases/v1.5.2/minikube-linux-amd64 && chmod +x minikube
     sudo mkdir -p /usr/local/bin/
     sudo install minikube /usr/local/bin/
+    rm minikube
     
     if [ -z "$LUXOFT_ENV" ]; then
         echo "LUXOFT_ENV is undefined"
     else
         echo "LUXOFT_ENV is defined: copy Luxoft root CA into minikube"
+        mkdir -p $HOME/.minikube/files/etc/ssl/certs
         sudo cp /usr/local/share/ca-certificates/luxoft/luxoft_root_ca.crt ~/.minikube/files/etc/ssl/certs
     fi
 fi
