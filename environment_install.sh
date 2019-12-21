@@ -1,5 +1,10 @@
 #!/bin/sh
 
+## This script provides initial setup for running a single-node Kubernetes cluster (minikube)
+## If inside Luxoft network (environment variable LUXOFT_ENV=some_value is defined) you need first to authenticate through FW Checkpoint
+## The script checks if virtualization support is enabled in Linux, curl/kubectl/VirtualBox/minikube are installed (and if not installs them)
+## This script was tested on : Ubuntu 18.04
+
 if [ -z "$LUXOFT_ENV" ]; then
   echo "LUXOFT_ENV is undefined"
 else
@@ -35,7 +40,7 @@ if [ $? -eq 0 ]; then
     echo "curl is installed"
 else
     echo "curl is not installed"
-    sudo apt install curl
+    sudo apt install -y curl
 fi
 
 # Check if kubectl is installed
@@ -65,7 +70,7 @@ else
     wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
     wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
     sudo apt-get update
-    sudo apt-get install virtualbox-6.0
+    sudo apt-get install -y virtualbox-6.0
 fi
 
 # Check if minikube is installed
@@ -88,4 +93,13 @@ else
         sudo cp /usr/local/share/ca-certificates/luxoft/luxoft_root_ca.crt ~/.minikube/files/etc/ssl/certs
     fi
 fi
-minikube start
+
+
+# Check if minikube is running
+minikube status | grep Running > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "minikube already running"
+else
+    echo "minikube is not running"
+    minikube start
+fi

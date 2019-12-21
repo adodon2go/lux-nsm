@@ -1,0 +1,18 @@
+diff --git a/.mk/helm.mk b/.mk/helm.mk
+index 7a587626..a25eab45 100644
+--- a/.mk/helm.mk
++++ b/.mk/helm.mk
+@@ -33,11 +33,11 @@ $(INSTALL_CHARTS):
+ 	--atomic --timeout ${HELM_TIMEOUT} \
+ 	--set org="${CONTAINER_REPO}",tag="${CONTAINER_TAG}" \
+ 	--set forwardingPlane="${FORWARDING_PLANE}" \
+-	--set insecure="${INSECURE}" \
++	--set insecure="true" \
+ 	--set prometheus="${PROMETHEUS}" \
+ 	--set metricsCollectorEnabled="${METRICS_COLLECTOR_ENABLED}" \
+ 	--set global.JaegerTracing="true" \
+-	--set spire.enabled="${SPIRE_ENABLED}",spire.org="${CONTAINER_REPO}",spire.tag="${CONTAINER_TAG}" \
++	--set spire.enabled="false",spire.org="${CONTAINER_REPO}",spire.tag="${CONTAINER_TAG}" \
+ 	--set admission-webhook.org="${CONTAINER_REPO}",admission-webhook.tag="${CONTAINER_TAG}" \
+ 	--set prefix-service.org="${CONTAINER_REPO}",prefix-service.tag="${CONTAINER_TAG}" \
+ 	--namespace="${NSM_NAMESPACE}" \
