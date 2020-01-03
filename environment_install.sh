@@ -53,7 +53,7 @@ else
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
     # Add below line in ~/.bashrc for persistence
-    # source <(kubectl completion bash)
+    echo "source <(kubectl completion bash)" >> ~/.bashrc
 fi
 
 #Installing Virtual Box
