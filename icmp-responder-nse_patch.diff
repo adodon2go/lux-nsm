@@ -1,0 +1,25 @@
+diff --git a/deployments/helm/icmp-responder/templates/icmp-responder-nse.tpl b/deployments/helm/icmp-responder/templates/icmp-responder-nse.tpl
+index 96b3bbc1..0fd6aa93 100644
+--- a/deployments/helm/icmp-responder/templates/icmp-responder-nse.tpl
++++ b/deployments/helm/icmp-responder/templates/icmp-responder-nse.tpl
+@@ -14,20 +14,6 @@ spec:
+         networkservicemesh.io/impl: "icmp-responder"
+     spec:
+       serviceAccount: nse-acc
+-      affinity:
+-        podAntiAffinity:
+-          requiredDuringSchedulingIgnoredDuringExecution:
+-            - labelSelector:
+-                matchExpressions:
+-                  - key: networkservicemesh.io/app
+-                    operator: In
+-                    values:
+-                      - icmp-responder
+-                  - key: networkservicemesh.io/impl
+-                    operator: In
+-                    values:
+-                      - icmp-responder
+-              topologyKey: "kubernetes.io/hostname"
+       containers:
+         - name: icmp-responder-nse
+           image: {{ .Values.registry }}/{{ .Values.org }}/test-common:{{ .Values.tag}}
