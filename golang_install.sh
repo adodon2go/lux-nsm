@@ -4,15 +4,6 @@
 ## Tested on Ubuntu 18.04
 GOLANG_VERSION=1.13.5
 
-# Check if curl is installed
-curl --version > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "curl is installed"
-else
-    echo "curl is not installed"
-    sudo apt install -y curl
-fi
-
 # Check if golang is installed
 go version > /dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -33,7 +24,7 @@ else
     # Add environment variables to bashrc for persistence
     echo "export GOPATH=$GOPATH" >> ~/.bashrc
     echo "export GOROOT=$GOROOT/go" >> ~/.bashrc
-    echo "export PATH=\$PATH:\$GOROOT/bin" >> ~/.bashrc
+    echo "export PATH=\$PATH:\$GOROOT/bin:\$GOPATH/bin" >> ~/.bashrc
 
     echo "you need to manually add command 'source ~/.bashrc' into the shell to pick up latest environment changes"
 fi

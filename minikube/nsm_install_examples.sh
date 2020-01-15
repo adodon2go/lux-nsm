@@ -2,16 +2,13 @@
 
 ## This script installs NSM Examples inside Minikube: icmp-responder, vpn, vpp-icmp-responder
 
-# Make sure we have initial minikube setup up & running
-sh environment_install.sh
-# Make sure we have initial minikube NSM setup up & running
-sh nsm_minikube_install.sh
-
-if [ -d "networkservicemesh" ]; then
-  echo "networkservicemesh directory exists"
+# Check if NSM is installed
+kubectl get pods -A | grep nsm > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "NSM is installed"
 else
-  echo "networkservicemesh directory doesn't exists"
-  git clone https://github.com/networkservicemesh/networkservicemesh.git
+    echo "NSM is not installed"
+    sh nsm_install.sh
 fi
 
 # Check if NSM example icmp-responder is installed
@@ -25,6 +22,7 @@ else
     make helm-install-icmp-responder
     
     # we need to check that all NSC & NSE from example are up & running
+	# TODO: automatize this
     SLEEP=30
     echo "waiting $SLEEP sec for all NSC & NSE from example to become up & running"
     sleep $SLEEP

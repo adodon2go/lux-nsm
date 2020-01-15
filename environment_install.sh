@@ -13,14 +13,17 @@ else
   # Add an alias in ~/.bashrc  (https://github.com/felixb/cpfw-login)
   # alias myproxy='cpfw-login_amd64 --user adodon'
   cpfw-login_amd64 --user adodon
+  while [ $? -ne 0 ]; do
+    cpfw-login_amd64 --user adodon
+  done
   
-  FILE=/usr/local/share/ca-certificates/luxoft/luxoft_root_ca.crt
+  FILE=/usr/local/share/ca-certificates/Luxoft-Root-CA.crt
   if [ -f "$FILE" ]; then
     echo "$FILE exist"
   else 
     echo "$FILE does not exist"
-    sudo mkdir /usr/local/share/ca-certificates/luxoft
-    sudo cp root_ca.crt /usr/local/share/ca-certificates/luxoft/luxoft_root_ca.crt
+    sudo mkdir -p /usr/local/share/ca-certificates
+    sudo cp certs/* /usr/local/share/ca-certificates/
     sudo update-ca-certificates
   fi
 
@@ -103,3 +106,6 @@ else
     echo "minikube is not running"
     minikube start
 fi
+
+sh golang_install.sh
+
