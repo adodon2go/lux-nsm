@@ -5,6 +5,10 @@
 ## The script checks if virtualization support is enabled in Linux, curl/kubectl/VirtualBox/minikube are installed (and if not installs them)
 ## This script was tested on : Ubuntu 18.04
 
+#In case you receive "Got permission denied while trying to connect to the Docker daemon socket at unix" when running Docker client commands:
+# > sudo usermod -aG docker $(whoami)
+# and reconnect to new SSH terminal for changes to take effect
+
 if [ -z "$LUXOFT_ENV" ]; then
   echo "LUXOFT_ENV is undefined"
 else
@@ -12,8 +16,20 @@ else
   
   # Add an alias in ~/.bashrc  (https://github.com/felixb/cpfw-login)
   # alias myproxy='cpfw-login_amd64 --user adodon'
+
+  # Check if cpfw-login_amd64 is installed
+  cpfw-login_amd64 --help > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "cpfw-login_amd64 is installed"
+  else
+    echo "cpfw-login_amd64 is not installed"
+    sudo cp cpfw-login_amd64 /usr/local/bin/
+  fi
+
   cpfw-login_amd64 --user adodon
   while [ $? -ne 0 ]; do
+    # Put a sleep to prevent flooding of output in case cpfw-login_amd64 is not found in $PATH
+    sleep 1
     cpfw-login_amd64 --user adodon
   done
   
@@ -83,17 +99,17 @@ if [ $? -eq 0 ]; then
 else
     echo "minikube is not installed"
     
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v1.5.2/minikube-linux-amd64 && chmod +x minikube
+    curl -O https://storage.googleapis.com/minikube/releases/v1.5.2/minikube-linux-amd64 && chmod +x minikube-linux-amd64
     sudo mkdir -p /usr/local/bin/
-    sudo install minikube /usr/local/bin/
-    rm minikube
+    sudo install -v minikube-linux-amd64 /usr/local/bin/minikube
+    rm minikube-linux-amd64
     
     if [ -z "$LUXOFT_ENV" ]; then
         echo "LUXOFT_ENV is undefined"
     else
         echo "LUXOFT_ENV is defined: copy Luxoft root CA into minikube"
         mkdir -p $HOME/.minikube/files/etc/ssl/certs
-        sudo cp /usr/local/share/ca-certificates/luxoft/luxoft_root_ca.crt ~/.minikube/files/etc/ssl/certs
+        cp /usr/local/share/ca-certificates/*.crt ~/.minikube/files/etc/ssl/certs
     fi
 fi
 
