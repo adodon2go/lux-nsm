@@ -16,7 +16,7 @@ else
 fi
 
 # Check if NSM example icmp-responder is installed
-kubectl get pods -A | grep icmp-responder > /dev/null 2>&1
+kubectl get pods -A | grep icmp-responder | grep nsm-system > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "NSM example icmp-responder is installed"
 else
