@@ -1,0 +1,36 @@
+diff --git a/pkg/tools/socket.go b/pkg/tools/socket.go
+index 63448228..5ce6c80c 100644
+--- a/pkg/tools/socket.go
++++ b/pkg/tools/socket.go
+@@ -22,7 +22,7 @@ const (
+ 	// InsecureEnv environment variable, if "true" NSM will work in insecure mode
+ 	InsecureEnv = "INSECURE"
+ 
+-	insecureDefault    = false
++	insecureDefault    = true
+ 	dialTimeoutDefault = 15 * time.Second
+ )
+ 
+diff --git a/test/kubetest/k8s.go b/test/kubetest/k8s.go
+index 6c8092d9..23aa899d 100644
+--- a/test/kubetest/k8s.go
++++ b/test/kubetest/k8s.go
+@@ -437,15 +437,17 @@ func NewK8s(g *WithT, prepare bool) (*K8s, error) {
+ 	})
+ 	g.Expect(err).Should(BeNil())
+ 	var wg sync.WaitGroup
+-	wg.Add(3)
++	wg.Add(2)
+ 	go func() {
+ 		defer wg.Done()
+ 		client.roles, _ = client.CreateRoles("admin", "view", "binding")
+ 	}()
++    /*
+ 	go func() {
+ 		defer wg.Done()
+ 		client.cleanupFunc = InitSpireSecurity(client)
+ 	}()
++    */
+ 	go func() {
+ 		defer wg.Done()
+ 		client.CreatePod(pods.PrefixServicePod(client.namespace))

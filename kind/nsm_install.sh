@@ -30,7 +30,8 @@ else
     else
         git clone https://github.com/networkservicemesh/networkservicemesh.git
         cp ../nsm_patch.diff networkservicemesh/
-        cd networkservicemesh && git apply nsm_patch.diff
+        cp testing_patch.diff networkservicemesh/
+        cd networkservicemesh && git apply nsm_patch.diff && git apply testing_patch.diff
     fi
 
     make k8s-build
