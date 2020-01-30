@@ -2,7 +2,7 @@
 
 ## This script installs Golang locally (if it is not already installed)
 ## Tested on Ubuntu 18.04
-GOLANG_VERSION=1.13.5
+GOLANG_VERSION=1.13.7
 
 # Check if golang is installed
 go version > /dev/null 2>&1
@@ -11,7 +11,7 @@ if [ $? -eq 0 ]; then
 else
     echo "Golang is not installed"
     GOPATH=$HOME/go
-    GOROOT=$HOME/GoInstall
+    GOROOT=$HOME/Golang
     
     mkdir -p $GOPATH
     mkdir -p $GOROOT

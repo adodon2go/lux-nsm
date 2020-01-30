@@ -124,4 +124,5 @@ else
 fi
 
 sh golang_install.sh
+sh docker_ce_install.sh
 
