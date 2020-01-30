@@ -15,11 +15,10 @@ else
     "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) \
     stable"
-    sudo apt-get install docker-ce=$DOCKER_VERSION
+    sudo apt-get install -y docker-ce=$DOCKER_VERSION
     sudo groupadd docker
     sudo usermod -aG docker $USER
     echo "Log out and log back in so that your Docker group membership is re-evaluated"
     # exclude Docker from being updated on Linux
-    sudo apt-mark hold docker && sudo apt-get upgrade
+    sudo apt-mark hold docker docker-ce docker-ce-cli containerd.io && sudo apt-get upgrade
 fi
-
