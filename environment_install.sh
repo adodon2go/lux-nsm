@@ -113,16 +113,7 @@ else
     fi
 fi
 
-
-# Check if minikube is running
-minikube status | grep Running > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "minikube already running"
-else
-    echo "minikube is not running"
-    minikube start
-fi
-
 sh golang_install.sh
 sh docker_ce_install.sh
+sh helm_install.sh
 
