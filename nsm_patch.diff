@@ -1,18 +1,19 @@
-diff --git a/.mk/helm.mk b/.mk/helm.mk
-index 7a587626..a25eab45 100644
---- a/.mk/helm.mk
-+++ b/.mk/helm.mk
-@@ -33,11 +33,11 @@ $(INSTALL_CHARTS):
- 	--atomic --timeout ${HELM_TIMEOUT} \
- 	--set org="${CONTAINER_REPO}",tag="${CONTAINER_TAG}" \
- 	--set forwardingPlane="${FORWARDING_PLANE}" \
--	--set insecure="${INSECURE}" \
-+	--set insecure="true" \
- 	--set prometheus="${PROMETHEUS}" \
- 	--set metricsCollectorEnabled="${METRICS_COLLECTOR_ENABLED}" \
- 	--set global.JaegerTracing="true" \
--	--set spire.enabled="${SPIRE_ENABLED}",spire.org="${CONTAINER_REPO}",spire.tag="${CONTAINER_TAG}" \
-+	--set spire.enabled="false",spire.org="${CONTAINER_REPO}",spire.tag="${CONTAINER_TAG}" \
- 	--set admission-webhook.org="${CONTAINER_REPO}",admission-webhook.tag="${CONTAINER_TAG}" \
- 	--set prefix-service.org="${CONTAINER_REPO}",prefix-service.tag="${CONTAINER_TAG}" \
- 	--namespace="${NSM_NAMESPACE}" \
+diff --git a/scripts/helm-nsm-install.sh b/scripts/helm-nsm-install.sh
+index 7c1a9ad0..1241de56 100755
+--- a/scripts/helm-nsm-install.sh
++++ b/scripts/helm-nsm-install.sh
+@@ -156,12 +156,12 @@ $HELM install $VERSION_SPECIFIC_OPTS \
+   --atomic ${HELM_TRACE:+--dry-run --debug} \
+   --set org="$CONTAINER_REPO",tag="$CONTAINER_TAG" \
+   --set forwardingPlane="$FORWARDING_PLANE" \
+-  --set insecure="$INSECURE" \
++  --set insecure="true" \
+   --set networkservice="${NETWORK_SERVICE}" \
+   --set prometheus="${PROMETHEUS}" \
+   --set metricsCollectorEnabled="${METRICS_COLLECTOR_ENABLED}" \
+   --set global.JaegerTracing="true" \
+-  --set spire.enabled="$SPIRE_ENABLED",spire.org="$CONTAINER_REPO",spire.tag="$CONTAINER_TAG" \
++  --set spire.enabled="false",spire.org="$CONTAINER_REPO",spire.tag="$CONTAINER_TAG" \
+   --set admission-webhook.org="$CONTAINER_REPO",admission-webhook.tag="$CONTAINER_TAG" \
+   --set prefix-service.org="$CONTAINER_REPO",prefix-service.tag="$CONTAINER_TAG" \
+   --namespace "$NSM_NAMESPACE" \
