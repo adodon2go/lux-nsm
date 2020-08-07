@@ -2,7 +2,7 @@
 
 ## This script installs Helm locally (if it is not already installed)
 ## Tested on Ubuntu 18.04
-HELM_VERSION=v2.16.1
+HELM_VERSION=v3.2.4
 
 # Check if Helm is installed
 helm --help > /dev/null 2>&1

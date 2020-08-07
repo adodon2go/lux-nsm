@@ -78,40 +78,40 @@ fi
 #Installing Virtual Box
 
 # Check if VirtualBox is installed
-vboxmanage --version > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "VirtualBox already installed"
-else
-    echo "VirtualBox is not installed"
-    #Add the following line to your /etc/apt/sources.list
-    sudo add-apt-repository "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib"
+# vboxmanage --version > /dev/null 2>&1
+# if [ $? -eq 0 ]; then
+    # echo "VirtualBox already installed"
+# else
+    # echo "VirtualBox is not installed"
+    # #Add the following line to your /etc/apt/sources.list
+    # sudo add-apt-repository "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib"
 
-    wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
-    wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
-    sudo apt-get update
-    sudo apt-get install -y virtualbox-6.0
-fi
+    # wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+    # wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+    # sudo apt-get update
+    # sudo apt-get install -y virtualbox-6.0
+# fi
 
 # Check if minikube is installed
-minikube > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "minikube already installed"
-else
-    echo "minikube is not installed"
+# minikube > /dev/null 2>&1
+# if [ $? -eq 0 ]; then
+    # echo "minikube already installed"
+# else
+    # echo "minikube is not installed"
     
-    curl -O https://storage.googleapis.com/minikube/releases/v1.5.2/minikube-linux-amd64 && chmod +x minikube-linux-amd64
-    sudo mkdir -p /usr/local/bin/
-    sudo install -v minikube-linux-amd64 /usr/local/bin/minikube
-    rm minikube-linux-amd64
+    # curl -O https://storage.googleapis.com/minikube/releases/v1.5.2/minikube-linux-amd64 && chmod +x minikube-linux-amd64
+    # sudo mkdir -p /usr/local/bin/
+    # sudo install -v minikube-linux-amd64 /usr/local/bin/minikube
+    # rm minikube-linux-amd64
     
-    if [ -z "$LUXOFT_ENV" ]; then
-        echo "LUXOFT_ENV is undefined"
-    else
-        echo "LUXOFT_ENV is defined: copy Luxoft root CA into minikube"
-        mkdir -p $HOME/.minikube/files/etc/ssl/certs
-        cp /usr/local/share/ca-certificates/*.crt ~/.minikube/files/etc/ssl/certs
-    fi
-fi
+    # if [ -z "$LUXOFT_ENV" ]; then
+        # echo "LUXOFT_ENV is undefined"
+    # else
+        # echo "LUXOFT_ENV is defined: copy Luxoft root CA into minikube"
+        # mkdir -p $HOME/.minikube/files/etc/ssl/certs
+        # cp /usr/local/share/ca-certificates/*.crt ~/.minikube/files/etc/ssl/certs
+    # fi
+# fi
 
 sh golang_install.sh
 sh docker_ce_install.sh
