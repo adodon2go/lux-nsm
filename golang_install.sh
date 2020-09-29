@@ -2,7 +2,7 @@
 
 ## This script installs Golang locally (if it is not already installed)
 ## Tested on Ubuntu 18.04
-GOLANG_VERSION=1.14.7
+GOLANG_VERSION=1.15.2
 
 # Check if golang is installed
 go version > /dev/null 2>&1

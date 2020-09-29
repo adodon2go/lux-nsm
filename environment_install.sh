@@ -68,7 +68,7 @@ if [ $? -eq 0 ]; then
     echo "kubectl is installed"
 else
     echo "kubectl is not installed"
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.17.5/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
     # Add below line in ~/.bashrc for persistence
@@ -114,6 +114,6 @@ fi
 # fi
 
 sh golang_install.sh
-sh docker_ce_install.sh
+#sh docker_ce_install.sh
 sh helm_install.sh
 
