@@ -22,8 +22,8 @@ kind delete cluster --name=kind3
 # We need to delete it in order to force script to recreate with latest code changes
 docker image rm cnns/wcm-runner:latest
 
-WCM_SYSTEM_REPO=github.com/adodon2go/wcm-system.git
-WCM_SYSTEM_BRANCH=latest
+WCM_SYSTEM_REPO=github.com/cisco-app-networking/wcm-system.git
+WCM_SYSTEM_BRANCH=master
 
 WCM_COMMON_REPO=github.com/cisco-app-networking/wcm-common.git
 WCM_COMMON_BRANCH=master
