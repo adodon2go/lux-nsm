@@ -15,21 +15,22 @@ then
 fi
 
 rm -rf /tmp/cluster_state
+rm cmd.errors
 docker rm -f $(docker ps -a | grep wcm-runner | awk '{ print $1 }')
 kind delete cluster --name=kind1
 kind delete cluster --name=kind2
 kind delete cluster --name=kind3
 # We need to delete it in order to force script to recreate with latest code changes
-docker image rm cnns/wcm-runner:latest
+docker image rm ciscoappnetworking/wcm-runner:latest
 
-WCM_SYSTEM_REPO=github.com/adodon2go/wcm-system.git
-WCM_SYSTEM_BRANCH=release-v0.1.0
+WCM_SYSTEM_REPO=github.com/cisco-app-networking/wcm-system.git
+WCM_SYSTEM_BRANCH=master
 
 WCM_COMMON_REPO=github.com/cisco-app-networking/wcm-common.git
-WCM_COMMON_BRANCH=release-v0.1.0
+WCM_COMMON_BRANCH=master
 
 WCM_API_REPO=github.com/cisco-app-networking/wcm-api.git
-WCM_API_BRANCH=release-v0.1.0
+WCM_API_BRANCH=master
 
 WCM_SYSTEM_DIR=/go/src/github.com/cisco-app-networking/wcm-system
 
@@ -60,7 +61,7 @@ echo $sudoPW | sudo -S mkdir -p /go/gopath
 echo $sudoPW | sudo -S mkdir -p /go/src/github.com/cisco-app-networking
  
 export GOPATH=/go/gopath
-echo $sudoPW | sudo -S chown -R midgard:midgard /go
+echo $sudoPW | sudo -S chown -R adodon:adodon /go
 
 cd /go/src/github.com/cisco-app-networking
 git clone ${WCM_SYSTEM_REPO}
@@ -116,7 +117,7 @@ GOPATH=
 . dependencies.env 
 NSM_REPO=${NSM_REPO} NSM_BRANCH=${NSM_BRANCH} NSE_REPO=${NSE_REPO} NSE_BRANCH=${NSE_BRANCH} WCM_COMMON_BRANCH=${WCM_COMMON_BRANCH} make docker-ci-runner DEPENDENCIES=${WCM_SYSTEM_DIR}/dependencies.env 
 
-docker run -d --rm -v /var/run/docker.sock:/var/run/docker.sock --name=wcm-runner --network=host -e GOPATH=/go -e DEPENDENCIES=${WCM_SYSTEM_DIR}/dependencies.env -e CIRCLE_SHA1=${CIRCLE_SHA1} cnns/wcm-runner:latest bash -c "while [[ 1 ]]; do sleep 900; done"
+docker run -d --rm -v /var/run/docker.sock:/var/run/docker.sock --name=wcm-runner --network=host -e GOPATH=/go -e DEPENDENCIES=${WCM_SYSTEM_DIR}/dependencies.env -e CIRCLE_SHA1=${CIRCLE_SHA1} ciscoappnetworking/wcm-runner:latest bash -c "while [[ 1 ]]; do sleep 900; done"
 
 docker exec -t wcm-runner bash -c "kind create cluster --name kind1" 
 docker exec -t wcm-runner bash -c "kind create cluster --name kind2" 
@@ -129,101 +130,106 @@ docker exec -t wcm-runner bash -c "kind get kubeconfig --name=kind2 > ${WCM_SYST
 docker exec -t wcm-runner bash -c "kind get kubeconfig --name=kind3 > ${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-3.kubeconfig"
 docker exec -t wcm-runner bash -c "cd /go/src/github.com/cisco-app-networking/wcm-system; cat system_topo/config/kind_clustermaps.sh | sed 's@\${HOME}@/go/src/github.com/cisco-app-networking/wcm-system@g' > system_topo/config/systest_clustermap.sh"
   
-docker pull cnns/cnns-ipam:latest
-docker pull cnns/connectivity-domain-operator:latest
-docker pull cnns/nsmrs:latest
-docker pull cnns/vl3_ucnf-nse:master
-docker pull cnns/ucnf-kiknos-vppagent:master
-docker pull cnns/app-dns-publisher-controller:latest
-docker pull cnns/nse-discovery-operator:latest
-docker pull ciscoappnetworking/nsmdp:vl3_latest
-docker pull ciscoappnetworking/nsmd:vl3_latest
-docker pull ciscoappnetworking/nsmd-k8s:vl3_latest
-docker pull ciscoappnetworking/vppagent-forwarder:vl3_latest
-docker pull ciscoappnetworking/proxy-nsmd:vl3_latest
-docker pull ciscoappnetworking/proxy-nsmd-k8s:vl3_latest
-docker pull networkservicemesh/crossconnect-monitor:master
-docker pull networkservicemesh/nsm-init:master
-docker pull networkservicemesh/nsm-dns-init:master
-docker pull networkservicemesh/nsm-monitor:master
-docker pull networkservicemesh/coredns:master
-docker pull ciscoappnetworking/admission-webhook:release-v0.1.0
-docker pull networkservicemesh/nsm-spire:master
+# docker pull cnns/cnns-ipam:latest
+# docker pull cnns/connectivity-domain-operator:latest
+# docker pull cnns/nsmrs:latest
+# docker pull cnns/vl3_ucnf-nse:master
+# docker pull cnns/ucnf-kiknos-vppagent:master
+# docker pull cnns/app-dns-publisher-controller:latest
+# docker pull cnns/nse-discovery-operator:latest
+# docker pull ciscoappnetworking/nsmdp:vl3_latest
+# docker pull ciscoappnetworking/nsmd:vl3_latest
+# docker pull ciscoappnetworking/nsmd-k8s:vl3_latest
+# docker pull ciscoappnetworking/vppagent-forwarder:vl3_latest
+# docker pull ciscoappnetworking/proxy-nsmd:vl3_latest
+# docker pull ciscoappnetworking/proxy-nsmd-k8s:vl3_latest
+# docker pull networkservicemesh/crossconnect-monitor:master
+# docker pull networkservicemesh/nsm-init:master
+# docker pull networkservicemesh/nsm-dns-init:master
+# docker pull networkservicemesh/nsm-monitor:master
+# docker pull networkservicemesh/coredns:master
+# docker pull ciscoappnetworking/admission-webhook:release-v0.1.0
+# docker pull networkservicemesh/nsm-spire:master
 
 
-for cluster in kind1; do
-    kind load docker-image --name $cluster quay.io/coreos/etcd:v3.2.13
-    kind load docker-image --name $cluster quay.io/coreos/etcd-operator:v0.9.4
-    kind load docker-image --name $cluster metallb/controller:v0.8.2
-    kind load docker-image --name $cluster metallb/speaker:v0.8.2
-    kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
-    kind load docker-image --name $cluster cnns/cnns-ipam:latest
-    kind load docker-image --name $cluster cnns/connectivity-domain-operator:latest
-    kind load docker-image --name $cluster cnns/nsmrs:latest
-done
+# for cluster in kind1; do
+    # kind load docker-image --name $cluster quay.io/coreos/etcd:v3.2.13
+    # kind load docker-image --name $cluster quay.io/coreos/etcd-operator:v0.9.4
+    # kind load docker-image --name $cluster metallb/controller:v0.8.2
+    # kind load docker-image --name $cluster metallb/speaker:v0.8.2
+    # kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
+    # kind load docker-image --name $cluster cnns/cnns-ipam:latest
+    # kind load docker-image --name $cluster cnns/connectivity-domain-operator:latest
+    # kind load docker-image --name $cluster cnns/nsmrs:latest
+# done
  
-for cluster in kind2 kind3; do
-    kind load docker-image --name $cluster cnns/vl3_ucnf-nse:master
-    kind load docker-image --name $cluster cnns/ucnf-kiknos-vppagent:master
-    kind load docker-image --name $cluster gcr.io/spiffe-io/wait-for-it
-    kind load docker-image --name $cluster gcr.io/spiffe-io/spire-agent:0.9.0
-    kind load docker-image --name $cluster gcr.io/spiffe-io/spire-server:0.9.0
-    kind load docker-image --name $cluster ciscoappnetworking/nsmdp:release-v0.1.0
-    kind load docker-image --name $cluster ciscoappnetworking/nsmd:release-v0.1.0
-    kind load docker-image --name $cluster ciscoappnetworking/nsmd-k8s:release-v0.1.0
-    kind load docker-image --name $cluster ciscoappnetworking/vppagent-forwarder:release-v0.1.0
-    kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd:release-v0.1.0
-    kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd-k8s:release-v0.1.0
-    kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
-    kind load docker-image --name $cluster metallb/controller:v0.8.2
-    kind load docker-image --name $cluster metallb/speaker:v0.8.2
-    kind load docker-image --name $cluster networkservicemesh/crossconnect-monitor:master
-    kind load docker-image --name $cluster networkservicemesh/nsm-init:master
-    kind load docker-image --name $cluster networkservicemesh/nsm-dns-init:master
-    kind load docker-image --name $cluster networkservicemesh/nsm-monitor:master
-    kind load docker-image --name $cluster networkservicemesh/coredns:master
-    kind load docker-image --name $cluster ciscoappnetworking/admission-webhook:release-v0.1.0
-    kind load docker-image --name $cluster networkservicemesh/nsm-spire:master
-    kind load docker-image --name $cluster jaegertracing/all-in-one:1.14.0
-    kind load docker-image --name $cluster rancher/local-path-provisioner:v0.0.11
-    kind load docker-image --name $cluster skydive/skydive:0.24.0
-    kind load docker-image --name $cluster skydive/skydive:0.23.0
-    kind load docker-image --name $cluster quay.io/coreos/etcd:v3.3.15
-    kind load docker-image --name $cluster ciscolabs/kiknos:latest 
-    kind load docker-image --name $cluster cnns/app-dns-publisher-controller:latest
-    kind load docker-image --name $cluster cnns/nse-discovery-operator:latest
-done
+# for cluster in kind2 kind3; do
+    # kind load docker-image --name $cluster cnns/vl3_ucnf-nse:master
+    # kind load docker-image --name $cluster cnns/ucnf-kiknos-vppagent:master
+    # kind load docker-image --name $cluster gcr.io/spiffe-io/wait-for-it
+    # kind load docker-image --name $cluster gcr.io/spiffe-io/spire-agent:0.9.0
+    # kind load docker-image --name $cluster gcr.io/spiffe-io/spire-server:0.9.0
+    # kind load docker-image --name $cluster ciscoappnetworking/nsmdp:release-v0.1.0
+    # kind load docker-image --name $cluster ciscoappnetworking/nsmd:release-v0.1.0
+    # kind load docker-image --name $cluster ciscoappnetworking/nsmd-k8s:release-v0.1.0
+    # kind load docker-image --name $cluster ciscoappnetworking/vppagent-forwarder:release-v0.1.0
+    # kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd:release-v0.1.0
+    # kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd-k8s:release-v0.1.0
+    # kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
+    # kind load docker-image --name $cluster metallb/controller:v0.8.2
+    # kind load docker-image --name $cluster metallb/speaker:v0.8.2
+    # kind load docker-image --name $cluster networkservicemesh/crossconnect-monitor:master
+    # kind load docker-image --name $cluster networkservicemesh/nsm-init:master
+    # kind load docker-image --name $cluster networkservicemesh/nsm-dns-init:master
+    # kind load docker-image --name $cluster networkservicemesh/nsm-monitor:master
+    # kind load docker-image --name $cluster networkservicemesh/coredns:master
+    # kind load docker-image --name $cluster ciscoappnetworking/admission-webhook:release-v0.1.0
+    # kind load docker-image --name $cluster networkservicemesh/nsm-spire:master
+    # kind load docker-image --name $cluster jaegertracing/all-in-one:1.14.0
+    # kind load docker-image --name $cluster rancher/local-path-provisioner:v0.0.11
+    # kind load docker-image --name $cluster skydive/skydive:0.24.0
+    # kind load docker-image --name $cluster skydive/skydive:0.23.0
+    # kind load docker-image --name $cluster quay.io/coreos/etcd:v3.3.15
+    # kind load docker-image --name $cluster ciscolabs/kiknos:latest 
+    # kind load docker-image --name $cluster cnns/app-dns-publisher-controller:latest
+    # kind load docker-image --name $cluster cnns/nse-discovery-operator:latest
+# done
 
 echo "======================================= Done creating kind clusters & image loading  ================================="
 
 GOPATH=
 echo "All components will be installed and integrated for multi-connectivity domain functionality"
-docker exec -t wcm-runner ${WCM_SYSTEM_DIR}/system_topo/install_wcm.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --spire-disabled 2>&1 | tee cmd1.errors
+docker exec -t wcm-runner ${WCM_SYSTEM_DIR}/system_topo/install_wcm.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --spire-disabled 2>&1 | tee cmd.errors
 if [ $? -ne 0 ]; then
     echo "error: Install WCM failed!"
     exit 1
 fi
 echo ""
 echo "====== Script errors & failures messages ====="
-cat cmd1.errors | grep -i error
-cat cmd1.errors | grep -i fail
-cat cmd1.errors | grep -i "timed out"
+cat cmd.errors | grep -i error
+cat cmd.errors | grep -i fail
+cat cmd.errors | grep -i "timed out"
 echo ""
 echo "======================================= Done installing WCM  ================================="
+rm cmd.errors
+
+docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make resiliency-tests KUBECONFIG_CTRL=${WCM_SYSTEM_DIR}/kubeconfigs/central/kind-1.kubeconfig KUBECONFIG_MEMBER1=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-2.kubeconfig KUBECONFIG_MEMBER2=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-3.kubeconfig" 2>&1 | tee cmd.errors
+echo "======================================= Done running resiliency tests  ================================="
+echo ""
 
 sleep 10
-docker exec -t wcm-runner bash -c "${WCM_SYSTEM_DIR}/system_topo/create_connectdomain.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --nse-tag=${NSE_TAG} --name=example --ipam-prefix=172.100.0.0/16" 2>&1 | tee cmd2.errors
+docker exec -t wcm-runner bash -c "${WCM_SYSTEM_DIR}/system_topo/create_connectdomain.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --nse-tag=${NSE_TAG} --name=example --ipam-prefix=172.100.0.0/16" 2>&1 | tee cmd.errors
 if [ $? -ne 0 ]; then
     echo "error: Create connectivity domain failed!"
     exit 1
 fi
 echo ""
 echo "====== Script errors & failures messages ====="
-cat cmd2.errors | grep -i error
-cat cmd2.errors | grep -i fail
+cat cmd.errors | grep -i error
+cat cmd.errors | grep -i fail
 echo ""
 echo "======================================= Done Creating connectivity domain  ================================="
-
+rm cmd.errors
 
 sleep 5
 docker exec -t wcm-runner ${WCM_SYSTEM_DIR}/system_topo/deploy_demo_app.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --service-name=example --nsc-delay=10 2>&1 | tee cmd3.errors

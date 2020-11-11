@@ -48,7 +48,7 @@ WCM_SYSTEM_REPO=https://adodon2go:$githubPW@$WCM_SYSTEM_REPO
 WCM_COMMON_REPO=https://adodon2go:$githubPW@$WCM_COMMON_REPO
 WCM_API_REPO=https://adodon2go:$githubPW@$WCM_API_REPO
 
-#git config --global credential.helper 'cache --timeout=36000'
+git config --global credential.helper 'cache --timeout=36000'
 
 #NSE_REPO=https://github.com/adodon2go/nsm-nse.git
 #NSE_BRANCH=rebranding2
@@ -60,7 +60,7 @@ echo $sudoPW | sudo -S mkdir -p /go/gopath
 echo $sudoPW | sudo -S mkdir -p /go/src/github.com/cisco-app-networking
  
 export GOPATH=/go/gopath
-echo $sudoPW | sudo -S chown -R midgard:midgard /go
+echo $sudoPW | sudo -S chown -R adodon:adodon /go
 
 cd /go/src/github.com/cisco-app-networking
 git clone ${WCM_SYSTEM_REPO}

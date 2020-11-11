@@ -22,7 +22,7 @@ docker exec -t wcm bash -c "cd ${WCM_SYSTEM_DIR}/system_topo/config/; cat kind_c
 docker exec -t wcm bash -c "${WCM_SYSTEM_DIR}/system_topo/install_wcm.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --spire-disabled"
 docker exec -t wcm bash -c "cd ${WCM_SYSTEM_DIR}; . dependencies.env; sleep 10; ${WCM_SYSTEM_DIR}/system_topo/create_connectdomain.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --nse-tag=${NSE_TAG} --name=example --ipam-prefix=172.100.0.0/16"
 
-docker exec -t wcm sh -c "$WCM_SYSTEM_DIR/ci/runner/deploy_vl3.sh --kconfdir=${HOME}/kubeconfigs/nsm --service-name=example --nsc-delay=60"
+docker exec -t wcm bash -c "$WCM_SYSTEM_DIR/ci/runner/deploy_vl3.sh --kconfdir=${HOME}/kubeconfigs/nsm --service-name=example --nsc-delay=60"
 
 docker exec -t wcm sh -c "cd ${WCM_SYSTEM_DIR} ; make integration-tests-connectivity label='app=helloworld-example'; kcnsmdir=${HOME}/kubeconfigs/nsmdeployment='helloworld-example'"
 
