@@ -201,7 +201,6 @@ docker pull networkservicemesh/coredns:master
 docker pull networkservicemesh/nsm-spire:master
 
 for cluster in kind3 kind2 kind1; do
-    kind load docker-image --name $cluster istio/examples-helloworld-v1:latest
     kind load docker-image --name $cluster kindest/kindnetd:0.5.4
     kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
     kind load docker-image --name $cluster metallb/controller:v0.8.2
@@ -216,8 +215,6 @@ for cluster in kind1; do
 done
  
 for cluster in kind3 kind2; do
-    kind load docker-image --name $cluster ciscoappnetworking/vl3_ucnf-nse:master
-    kind load docker-image --name $cluster ciscoappnetworking/ucnf-kiknos-vppagent:master
     kind load docker-image --name $cluster gcr.io/spiffe-io/wait-for-it
     kind load docker-image --name $cluster gcr.io/spiffe-io/spire-agent:0.9.0
     kind load docker-image --name $cluster gcr.io/spiffe-io/spire-server:0.9.0
@@ -239,7 +236,6 @@ for cluster in kind3 kind2; do
     kind load docker-image --name $cluster rancher/local-path-provisioner:v0.0.11
     kind load docker-image --name $cluster skydive/skydive:0.24.0
     kind load docker-image --name $cluster skydive/skydive:0.23.0
-    kind load docker-image --name $cluster ciscolabs/kiknos:latest 
     kind load docker-image --name $cluster cnns/nse-discovery-operator:latest
     kind load docker-image --name $cluster cnns/member-core-operator:latest
     kind load docker-image --name $cluster cnns/wcm-nse-operator:latest
@@ -263,59 +259,40 @@ for cluster in kind1; do
     kind load docker-image --name $cluster cnns/wcmd:latest
     kind load docker-image --name $cluster ciscoappnetworking/nsmrs:vl3_latest
 done
+for cluster in kind3 kind2; do
+    kind load docker-image --name $cluster ciscoappnetworking/vl3_ucnf-nse:master
+done
 ${WCM_SYSTEM_DIR}/system_topo/create_connectdomain.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --nse-tag=${NSE_TAG} --name=example --ipam-prefix=172.100.0.0/16
 
 echo ""
-echo "====== Script errors & failures messages ====="
-cat cmd2.errors | grep -i error
-cat cmd2.errors | grep -i fail
 echo ""
-echo "======================================= Done Creating connectivity domain  ================================="
-
-
-sleep 5
-docker exec -t wcm-runner ${WCM_SYSTEM_DIR}/system_topo/deploy_demo_app.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --service-name=example --nsc-delay=10 2>&1 | tee cmd3.errors
-if [ $? -ne 0 ]; then
-    echo "error: Deploy Demo App failed!"
-    exit 1
-fi
 echo ""
-echo "====== Script errors & failures messages ====="
-cat cmd3.errors | grep -i error
-cat cmd3.errors | grep -i fail
-echo ""
-echo "======================================= Done Deploying Demo App  ================================="
+echo "======================================= Done Creating connectivity domain 'example' ================================="
 
-docker exec -t wcm-runner bash -c "cd  ${WCM_SYSTEM_DIR} && make integration-tests-connectivity label='app=helloworld-example' kcnsmdir=${WCM_SYSTEM_DIR}/kubeconfigs/nsm deployment='helloworld-example'" 2>&1 | tee cmd4.errors
-if [ $? -ne 0 ]; then
-    echo "error: integration-tests-connectivity failed!"
-    exit 1
-fi
-echo "Check externaldns-etcd connectivity"
-docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make integration-test-externaldns KUBECONFIG_CTRL=${WCM_SYSTEM_DIR}/kubeconfigs/central/kind-1.kubeconfig EXTERNALDNS_NS=wcm-system" 2>&1 | tee cmd4.errors
-if [ $? -ne 0 ]; then
-    echo "error: integration-test-externaldns failed!"
-    exit 1
-fi
-echo "Check app-dns-publisher: confirm client DNS resolution"
-docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make integration-test-appdnspublisher KUBECONFIG_CTRL=${WCM_SYSTEM_DIR}/kubeconfigs/central/kind-1.kubeconfig KUBECONFIG_MEMBER1=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-2.kubeconfig KUBECONFIG_MEMBER2=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-3.kubeconfig SERVICE_NAME=example" 2>&1 | tee cmd4.errors
-if [ $? -ne 0 ]; then
-    echo "error: integration-test-appdnspublisher failed!"
-    exit 1
-fi
-docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make integration-tests-deployment KUBECONFIG_CTRL=${WCM_SYSTEM_DIR}/kubeconfigs/central/kind-1.kubeconfig KUBECONFIG_MEMBER1=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-2.kubeconfig KUBECONFIG_MEMBER2=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-3.kubeconfig SERVICE_NAME=example" 2>&1 | tee cmd4.errors
-if [ $? -ne 0 ]; then
-    echo "error: integration-tests-deployment failed!"
-    exit 1
-fi
-
+for cluster in kind3 kind2; do
+    kind load docker-image --name $cluster istio/examples-helloworld-v1:latest
+done
+${WCM_SYSTEM_DIR}/system_topo/deploy_demo_app.sh --component-map-file=${WCM_SYSTEM_DIR}/system_topo/config/wcm-3-cluster.sh --cluster-map-file=${WCM_SYSTEM_DIR}/system_topo/config/systest_clustermap.sh --service-name=example --nsc-delay=10
 echo ""
-echo "====== Script errors & failures messages ====="
-cat cmd4.errors | grep -i error
-cat cmd4.errors | grep -i fail
+echo ""
+echo ""
+echo "======================================= Done Deploying 'example' connectivity domain client pods  ================================="
+
+cd  ${WCM_SYSTEM_DIR} && make integration-tests-connectivity label='app=helloworld-example' kcnsmdir=${WCM_SYSTEM_DIR}/kubeconfigs/nsm deployment='helloworld-example'
+echo ""
+echo ""
 echo ""
 echo "======================================= Done Testing  ================================="
 
+kind create cluster --name=kind4
+for cluster in kind4; do
+    kind load docker-image --name $cluster kindest/kindnetd:0.5.4
+    kind load docker-image --name $cluster registry.opensource.zalan.do/teapot/external-dns:v0.7.1
+    kind load docker-image --name $cluster metallb/controller:v0.8.2
+    kind load docker-image --name $cluster metallb/speaker:v0.8.2
+    kind load docker-image --name $cluster quay.io/coreos/etcd:v3.3.15
+    kind load docker-image --name $cluster quay.io/coreos/etcd-operator:v0.9.4
+done
 
 docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make k8s-log-dump"
 if [ $? -ne 0 ]; then
