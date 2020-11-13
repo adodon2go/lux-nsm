@@ -294,6 +294,51 @@ for cluster in kind4; do
     kind load docker-image --name $cluster quay.io/coreos/etcd-operator:v0.9.4
 done
 
+kind get kubeconfig --name=kind4 > ${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-4.kubeconfig
+cd ${WCM_SYSTEM_DIR}/system_topo/config/; cat kind_clustermaps.sh | sed 's@=\${KCONFDIR_ROOT}@=/go/src/github.com/cisco-app-networking/wcm-system@g' > systest_clustermap.sh
+
+
+kconf=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-4.kubeconfig
+kubectl wait --kubeconfig ${kconf} --timeout=150s --for condition=Ready -l tier=control-plane -n kube-system pod
+kubectl wait --kubeconfig ${kconf} --timeout=150s --for condition=Ready -l k8s-app=kube-proxy -n kube-system pod
+kubectl wait --kubeconfig ${kconf} --timeout=150s --for condition=Ready -l k8s-app=kindnet -n kube-system pod
+kubectl wait --kubeconfig ${kconf} --timeout=150s --for condition=Ready -l k8s-app=kube-dns -n kube-system pod
+
+for cluster in kind4; do
+    kind load docker-image --name $cluster gcr.io/spiffe-io/wait-for-it
+    kind load docker-image --name $cluster gcr.io/spiffe-io/spire-agent:0.9.0
+    kind load docker-image --name $cluster gcr.io/spiffe-io/spire-server:0.9.0
+    kind load docker-image --name $cluster ciscoappnetworking/nsmdp:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/nsmd:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/nsmd-k8s:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/vppagent-forwarder:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/proxy-nsmd-k8s:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/admission-webhook:vl3_latest
+    kind load docker-image --name $cluster ciscoappnetworking/crossconnect-monitor:vl3_latest
+    kind load docker-image --name $cluster networkservicemesh/crossconnect-monitor:master
+    kind load docker-image --name $cluster networkservicemesh/nsm-init:master
+    kind load docker-image --name $cluster networkservicemesh/nsm-dns-init:master
+    kind load docker-image --name $cluster networkservicemesh/nsm-monitor:master
+    kind load docker-image --name $cluster networkservicemesh/coredns:master
+    kind load docker-image --name $cluster networkservicemesh/nsm-spire:master
+    kind load docker-image --name $cluster jaegertracing/all-in-one:1.14.0
+    kind load docker-image --name $cluster rancher/local-path-provisioner:v0.0.11
+    kind load docker-image --name $cluster skydive/skydive:0.24.0
+    kind load docker-image --name $cluster skydive/skydive:0.23.0
+    kind load docker-image --name $cluster cnns/nse-discovery-operator:latest
+    kind load docker-image --name $cluster cnns/member-core-operator:latest
+    kind load docker-image --name $cluster cnns/wcm-nse-operator:latest
+    kind load docker-image --name $cluster matrohon/skydive:latest
+done
+
+echo "-------------------------------Add member cluster-------------------------------"
+${WCM_SYSTEM_DIR}/system_topo/add_membercluster.sh --kconf=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-4.kubeconfig --nameserver=172.17.0.2:32053 --etcd-addr=172.17.0.2 --etcd-port=32379
+
+echo "-------------------------------Join Connectivity Domain-------------------------------"
+${WCM_SYSTEM_DIR}/system_topo/member_join_connectdomain.sh --kconf=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-4.kubeconfig --name=example --ipam-prefix=172.100.0.0/16 --ipam-octet=24
+
+
 docker exec -t wcm-runner bash -c "cd ${WCM_SYSTEM_DIR} && make k8s-log-dump"
 if [ $? -ne 0 ]; then
     echo "error: k8s-log-dump failed!"
@@ -309,3 +354,44 @@ docker cp wcm-runner:${WCM_SYSTEM_DIR}/logs/. /tmp/cluster_state/
 
 
  
+ 
+ 
+adodon@eti-dev8-kvm2:/go/src/github.com/cisco-app-networking/wcm-system$ ${WCM_SYSTEM_DIR}/system_topo/member_join_connectdomain.sh --kconf=${WCM_SYSTEM_DIR}/kubeconfigs/nsm/kind-4.kubeconfig --name=example --ipam-prefix=172.100.0.0/16 --ipam-octet=24
+/go/src/github.com/cisco-app-networking/wcm-system /go/src/github.com/cisco-app-networking/wcm-system
+/go/src/github.com/cisco-app-networking/wcm-system
+kconfref=cluster1
+!kconfref=/go/src/github.com/cisco-app-networking/wcm-system/kubeconfigs/nsm/kind-4.kubeconfig
+connectdom_name=example
+ipam_prefix=172.100.0.0/16
+ipam_octetref=VL3_IPAMOCTET
+WCM_DNS_DOMAIN=wcm-cisco.com
+GLOBAL_NSR_PORT=31505
+INSECURE=true
+
+------------------------------------------------------------
+Deploying Connectivity Domain 'example' to member cluster cluster1: IP range=172.100.0.0/16
+------------------------------------------------------------
+
+cat <<EOF | kubectl apply --kubeconfig /go/src/github.com/cisco-app-networking/wcm-system/kubeconfigs/nsm/kind-4.kubeconfig -f -
+apiVersion: networkservicemesh.io/v1alpha1
+kind: NetworkService
+metadata:
+  name: example
+  namespace: wcm-system
+spec:
+  matches: null
+  payload: IP
+EOF
+networkservice.networkservicemesh.io/example created
+Install the connectivity domain endpoint to /go/src/github.com/cisco-app-networking/wcm-system/kubeconfigs/nsm/kind-4.kubeconfig
+/go/src/github.com/cisco-app-networking/wcm-system/connectivity_domain_endpoint /go/src/github.com/cisco-app-networking/wcm-system
+-----------Deploying Connectivity Domain Endpoint example-----------
+action=apply
+helm template "/home/adodon/go/src/github.com/cisco-app-networking/wcm-api/deployments/helm/wcm-vl3-nse-op"     --namespace "wcm-system"     --set name="example"     --set insecure="true"     --set replicas="2"     --set nsm.serviceName="example"     --set nsm.jaegerServiceName="wcm-jaeger.nsm-system"     --set nsm.nsmgrServiceName="wcm-nsmgr.nsm-system"     --set nse.nsr.address="example.wcm-cisco.com"     --set nse.nsr.port="31505"     --set nse.nsr.connectivityDomain="example-connectivity-domain"     --set nse.ipam.prefixPool="172.100.0.0/16"     --set nse.ipam.serverAddress="ipam-example.wcm-cisco.com:50051"
+Error: path "/home/adodon/go/src/github.com/cisco-app-networking/wcm-api/deployments/helm/wcm-vl3-nse-op" not found
+error: no objects passed to apply
+Waiting for pods to be Ready
+kubectl wait     --kubeconfig="/go/src/github.com/cisco-app-networking/wcm-system/kubeconfigs/nsm/kind-4.kubeconfig"     --timeout=150s     --for condition=Ready     -l wcm-nse="example"     -n="wcm-system"     pod
+error: no matching resources found
+/go/src/github.com/cisco-app-networking/wcm-system
+
