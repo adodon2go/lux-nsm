@@ -114,6 +114,6 @@ fi
 # fi
 
 sh golang_install.sh
-#sh docker_ce_install.sh
+sh docker_ce_install.sh
 sh helm_install.sh
 
